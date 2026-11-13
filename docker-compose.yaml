@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  moodle-app:
+    # Ganti dengan nama image hasil build Anda di Docker Hub nanti
+    image: wazis12/moodle
+    container_name: moodle_app_production
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - moodle_data:/var/www/moodledata
+    # Perintah di bawah ini otomatis menjalankan instalasi Moodle via CLI saat kontainer menyala
+    command: >
+      bash -c "
+      if [ ! -f /var/www/html/config.php ]; then
+        echo 'Memulai instalasi otomatis Moodle...';
+        php /var/www/html/admin/cli/install.php \
+          --lang=id \
+          --chmod=2777 \
+          --dbtype=mariadb \
+          --dbhost=192.168.1.50 \
+          --dbname=moodle_db \
+          --dbuser=moodle_user \
+          --dbpass=password_database_anda \
+          --dbport=3306 \
+          --fullname='Moodle E-Learning Server' \
+          --shortname='E-Learning' \
+          --summary='Platform Pembelajaran Digital Resmi' \
+          --adminuser=admin \
+          --adminpass=PasswordAdminMoodle123! \
+          --adminemail=admin@sekolah.sch.id \
+          --wwwroot='http://localhost' \
+          --dataroot='/var/www/moodledata' \
+          --agree-license \
+          --non-interactive;
+        echo 'Instalasi selesai!';
+      fi;
+      echo 'Menjalankan web server Apache...';
+      apache2-foreground
+      "
+
+volumes:
+  moodle_data:
